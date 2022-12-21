@@ -1,36 +1,31 @@
-type Drink = "tea" | "chocolate" | "coffee";
+import { cashMissingCheck } from "./cashMissingCheck";
+import { drinkMaker } from "./drinkMaker";
 
-type SugarAmount = 1 | 2;
+export type Drink = "tea" | "chocolate" | "coffee";
 
-type InputProtocol = {
+export type SugarAmount = 1 | 2;
+
+export type DrinkInputProtocol = {
   drinkType: Drink;
   sugarAmount?: SugarAmount;
 };
 
-type OutputProtocol = Omit<InputProtocol, "sugarAmount"> & {
+export type DrinkOutputProtocol = Omit<DrinkInputProtocol, "sugarAmount"> & {
   sugarAmount: SugarAmount | 0;
   withStick: boolean;
 };
 
-const drinkTypeToInstructionMap: Record<Drink, string> = {
-  tea: "T",
-  chocolate: "H",
-  coffee: "C",
+type DrinkMakerInput = {
+  drinkInput: DrinkInputProtocol;
+  userCash: number;
 };
-
-const sugarAmountToInstruction = (sugarAmount?: SugarAmount | 0) => {
-  if (!sugarAmount) return "";
-  return sugarAmount;
-};
-
-const stickAmountToInstruction = (withStick: boolean) => (withStick ? "0" : "");
 
 const shouldHaveStick = (sugarAmount?: SugarAmount) => {
   if (!sugarAmount) return false;
   return true;
 };
 
-export const domain = ({ sugarAmount, drinkType }: InputProtocol): OutputProtocol => {
+export const generateDrinkOrderInstruction = ({ sugarAmount, drinkType }: DrinkInputProtocol): DrinkOutputProtocol => {
   const withStick = shouldHaveStick(sugarAmount);
   return {
     drinkType,
@@ -39,14 +34,9 @@ export const domain = ({ sugarAmount, drinkType }: InputProtocol): OutputProtoco
   };
 };
 
-export const acl = ({ sugarAmount, drinkType, withStick }: OutputProtocol) => {
-  const drinkTypeInstruction = drinkTypeToInstructionMap[drinkType];
-  const sugarAmountInstruction = sugarAmountToInstruction(sugarAmount);
-  const withStickInstruction = stickAmountToInstruction(withStick);
+export const buildDrinkMakerProtocol = ({ drinkInput, userCash }: DrinkMakerInput) => {
+  const missingCash = cashMissingCheck({ userCash, drinkType: drinkInput.drinkType });
+  if (missingCash > 0) return `${missingCash} cents missing`;
 
-  return `${drinkTypeInstruction}:${sugarAmountInstruction}:${withStickInstruction}`;
-};
-
-export const buildDrinkMakerProtocol = (input: InputProtocol) => {
-  return acl(domain(input));
+  return drinkMaker(generateDrinkOrderInstruction(drinkInput));
 };
