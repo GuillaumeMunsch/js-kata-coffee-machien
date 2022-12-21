@@ -6,6 +6,7 @@ const drinkPricesMap = {
   tea: 40,
   chocolate: 50,
   coffee: 60,
+  orange: 60,
 };
 
 export const cashMissingCheck = ({ drinkType, userCash }: CashMissingInput) => {

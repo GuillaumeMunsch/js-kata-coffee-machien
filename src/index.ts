@@ -1,17 +1,39 @@
 import { cashMissingCheck } from "./cashMissingCheck";
 import { drinkMaker } from "./drinkMaker";
 
-export type Drink = "tea" | "chocolate" | "coffee";
+export type ColdNonSweetDrink = "orange";
+export type ColdDrink = ColdNonSweetDrink;
+export type HotDrink = "tea" | "chocolate" | "coffee";
+export type Drink = ColdDrink | HotDrink;
 
-export type SugarAmount = 1 | 2;
+export type SugarAmount = 0 | 1 | 2;
 
-export type DrinkInputProtocol = {
-  drinkType: Drink;
-  sugarAmount?: SugarAmount;
+export type Temperature = "cold" | "hot" | "extraHot";
+
+export type ColdNonSweetDrinkInputProtocol = {
+  drinkType: ColdNonSweetDrink;
+  temperature: "cold";
+  sugarAmount: 0;
 };
 
+export type ColdDrinkInputProtocol =
+  | ColdNonSweetDrinkInputProtocol
+  | {
+      drinkType: ColdDrink;
+      temperature: "cold";
+      sugarAmount: SugarAmount;
+    };
+
+export type HotDrinkInputProtocol = {
+  drinkType: HotDrink;
+  temperature: "hot" | "extraHot";
+  sugarAmount: SugarAmount;
+};
+
+export type DrinkInputProtocol = ColdDrinkInputProtocol | HotDrinkInputProtocol;
+
 export type DrinkOutputProtocol = Omit<DrinkInputProtocol, "sugarAmount"> & {
-  sugarAmount: SugarAmount | 0;
+  sugarAmount: SugarAmount;
   withStick: boolean;
 };
 
@@ -25,12 +47,17 @@ const shouldHaveStick = (sugarAmount?: SugarAmount) => {
   return true;
 };
 
-export const generateDrinkOrderInstruction = ({ sugarAmount, drinkType }: DrinkInputProtocol): DrinkOutputProtocol => {
+export const generateDrinkOrderInstruction = ({
+  sugarAmount,
+  drinkType,
+  temperature,
+}: DrinkInputProtocol): DrinkOutputProtocol => {
   const withStick = shouldHaveStick(sugarAmount);
   return {
     drinkType,
     sugarAmount,
     withStick,
+    temperature,
   };
 };
 
